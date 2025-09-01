@@ -216,6 +216,7 @@ class Activity(BaseActivity):
         'application_id',
         'emoji',
         'buttons',
+        'button_urls',
         'metadata',
     )
 
@@ -234,6 +235,7 @@ class Activity(BaseActivity):
         self.sync_id: Optional[str] = kwargs.pop('sync_id', None)
         self.session_id: Optional[str] = kwargs.pop('session_id', None)
         self.buttons: Optional[List[str]] = kwargs.pop('buttons', None)
+        self.button_urls: Optional[List[str]] = kwargs.pop('button_urls', None)
         self.metadata: Optional[dict] = kwargs.pop('metadata', None)
 
         activity_type = kwargs.pop('type', -1)
