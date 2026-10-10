@@ -1938,30 +1938,27 @@ def _component_factory(data: ComponentPayload, message: ComponentWithMessage = .
 
 class V2Layout(Component):
   __slots__ = ('type', 'children')
-  
-  def __init__(self, data):
+  def __init__(self, data, *args, **kwargs):
     self.type = try_enum(ComponentType, data.get('type'))
-    self.children = [_component_factory(d) for d in data.get('components', [])]
-    
+    self.children = [_component_factory(d, *args, **kwargs) for d in data.get('components', [])]
   def to_dict(self):
     return {
       'type': int(self.type),
       'components': [c.to_dict() for c in self.children]
     }
-    
-def _component_factory(data):
+
+def _component_factory(data, *args, **kwargs):
   component_type = data.get('type', 1)
   if component_type == 1:
-    return ActionRow(data)
+    return ActionRow(data, *args, **kwargs)
   elif component_type == 2:
-    return Button(data)
+    return Button(data, *args, **kwargs)
   elif component_type == 3:
-    return SelectMenu(data)
+    return SelectMenu(data, *args, **kwargs)
   elif component_type == 4:
-    return TextInput(data)
+    return TextInput(data, *args, **kwargs)
   elif component_type in (5, 6, 7, 8):
-    return SelectMenu(data)
-  elif component_type in (9, 10, 11, 17):
-    return V2Layout(data)
-  else:
-    return Component(data)
+    return SelectMenu(data, *args, **kwargs)
+  elif component_type in (9, 10, 11, 12, 14, 17, 18, 19, 21, 22, 23):
+    return V2Layout(data, *args, **kwargs)
+  return Component(data, *args, **kwargs)
