@@ -1937,34 +1937,53 @@ def _component_factory(
 def _component_factory(data: ComponentPayload, message: ComponentWithMessage = ...) -> Optional[Component]: ...
 
 class V2Layout(Component):
-  __slots__ = ('type', 'children')
-  
-  def __init__(self, data, *args, **kwargs):
-    self.type = try_enum(ComponentType, data.get('type'))
-    self.children = [_component_factory(d, *args, **kwargs) for d in data.get('components', [])]
+    __slots__ = ('type', 'children', 'accessory', 'items', 'extra')
     
-  @property
-  def __repr_info__(self):
-    return ('type', 'children')
-    
-  def to_dict(self):
-    return {
-      'type': int(self.type),
-      'components': [c.to_dict() for c in self.children]
-    }
+    def __init__(self, data, *args, **kwargs):
+        self.type = try_enum(ComponentType, data.get('type'))
+        
+        # Recursively parse standard child components
+        self.children = [_component_factory(d, *args, **kwargs) for d in data.get('components', [])]
+        
+        # Sections (type 9) often store their buttons in 'accessory'! We MUST parse it.
+        self.accessory = _component_factory(data['accessory'], *args, **kwargs) if 'accessory' in data else None
+        self.items = data.get('items', [])
+            
+        # Keep everything else safe
+        self.extra = {k: v for k, v in data.items() if k not in ('type', 'components', 'accessory', 'items')}
+
+    @property
+    def __repr_info__(self):
+        info = ('type',)
+        if self.extra: info += ('extra',)
+        if self.children: info += ('children',)
+        if self.accessory: info += ('accessory',)
+        if self.items: info += ('items',)
+        return info
+
+    def to_dict(self):
+        d = {'type': int(self.type)}
+        d.update(self.extra)
+        if self.children:
+            d['components'] = [c.to_dict() for c in self.children]
+        if self.accessory:
+            d['accessory'] = self.accessory.to_dict() if hasattr(self.accessory, 'to_dict') else self.accessory
+        if self.items:
+            d['items'] = self.items
+        return d
 
 def _component_factory(data, *args, **kwargs):
-  component_type = data.get('type', 1)
-  if component_type == 1:
-    return ActionRow(data, *args, **kwargs)
-  elif component_type == 2:
-    return Button(data, *args, **kwargs)
-  elif component_type == 3:
-    return SelectMenu(data, *args, **kwargs)
-  elif component_type == 4:
-    return TextInput(data, *args, **kwargs)
-  elif component_type in (5, 6, 7, 8):
-    return SelectMenu(data, *args, **kwargs)
-  elif component_type in (9, 10, 11, 12, 14, 17, 18, 19, 21, 22, 23):
-    return V2Layout(data, *args, **kwargs)
-  return Component(data, *args, **kwargs)
+    component_type = data.get('type', 1)
+    if component_type == 1:
+        return ActionRow(data, *args, **kwargs)
+    elif component_type == 2:
+        return Button(data, *args, **kwargs)
+    elif component_type in (3, 5, 6, 7, 8):
+        return SelectMenu(data, *args, **kwargs)
+    elif component_type == 4:
+        return TextInput(data, *args, **kwargs)
+    elif component_type in (9, 10, 11, 12, 13, 14, 17, 18, 19, 21, 22, 23):
+        return V2Layout(data, *args, **kwargs)
+    
+    # Base component doesn't take *args, only pass data to avoid crashes
+    return Component(data)

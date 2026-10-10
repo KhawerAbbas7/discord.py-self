@@ -2132,7 +2132,19 @@ class Message(PartialMessage, Hashable):
         return (
             f'<{name} id={self.id} channel={self.channel!r} type={self.type!r} author={self.author!r} flags={self.flags!r}>'
         )
+    def walk_components(self):
+        """Recursively yields all components (including deeply nested ones)."""
+        def _walk(comp):
+            yield comp
+            if hasattr(comp, 'children') and comp.children:
+                for child in comp.children:
+                    yield from _walk(child)
+            if hasattr(comp, 'accessory') and comp.accessory:
+                yield from _walk(comp.accessory)
 
+        for component in getattr(self, 'components', []):
+            yield from _walk(component)
+            
     async def _get_channel(self) -> MessageableChannel:
         return self.channel
 
