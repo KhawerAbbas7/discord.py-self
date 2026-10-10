@@ -1936,38 +1936,32 @@ def _component_factory(
 @overload
 def _component_factory(data: ComponentPayload, message: ComponentWithMessage = ...) -> Optional[Component]: ...
 
-
-def _component_factory(data: ComponentPayload, message: ComponentWithMessage = MISSING) -> Optional[Component]:
-    if data['type'] == 1:
-        return ActionRow(data, message)
-    elif data['type'] == 2:
-        return Button(data, message)
-    elif data['type'] == 4:
-        return TextInput(data, message)
-    elif data['type'] in (3, 5, 6, 7, 8):
-        return SelectMenu(data, message)  # type: ignore
-    elif data['type'] == 9:
-        return SectionComponent(data, message)
-    elif data['type'] == 10:
-        return TextDisplay(data, message)
-    elif data['type'] == 11:
-        return ThumbnailComponent(data, message)
-    elif data['type'] == 12:
-        return MediaGalleryComponent(data, message)
-    elif data['type'] == 13:
-        return FileComponent(data, message)
-    elif data['type'] == 14:
-        return SeparatorComponent(data, message)
-    elif data['type'] == 17:
-        return Container(data, message)
-    elif data['type'] == 18:
-        return LabelComponent(data, message)
-    elif data['type'] == 19:
-        return FileUploadComponent(data, message)
-    elif data['type'] == 21:
-        return RadioGroupComponent(data, message)
-    elif data['type'] == 22:
-        return CheckboxGroupComponent(data, message)
-    elif data['type'] == 23:
-        return CheckboxComponent(data, message)
-    return None
+class V2Layout(Component):
+  __slots__ = ('type', 'children')
+  
+  def __init__(self, data):
+    self.type = try_enum(ComponentType, data.get('type'))
+    self.children = [_component_factory(d) for d in data.get('components', [])]
+    
+  def to_dict(self):
+    return {
+      'type': int(self.type),
+      'components': [c.to_dict() for c in self.children]
+    }
+    
+def _component_factory(data):
+  component_type = data.get('type', 1)
+  if component_type == 1:
+    return ActionRow(data)
+  elif component_type == 2:
+    return Button(data)
+  elif component_type == 3:
+    return SelectMenu(data)
+  elif component_type == 4:
+    return TextInput(data)
+  elif component_type in (5, 6, 7, 8):
+    return SelectMenu(data)
+  elif component_type in (9, 10, 11, 17):
+    return V2Layout(data)
+  else:
+    return Component(data)

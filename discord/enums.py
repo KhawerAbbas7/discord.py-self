@@ -1054,30 +1054,19 @@ class VideoQualityMode(Enum):
 
 
 class ComponentType(Enum):
-    action_row = 1
-    button = 2
-    select = 3
-    string_select = 3
-    text_input = 4
-    user_select = 5
-    role_select = 6
-    mentionable_select = 7
-    channel_select = 8
-    section = 9
-    text_display = 10
-    thumbnail = 11
-    media_gallery = 12
-    file = 13
-    separator = 14
-    container = 17
-    label = 18
-    file_upload = 19
-    radio_group = 21
-    checkbox_group = 22
-    checkbox = 23
+  action_row = 1
+  button = 2
+  select = 3
+  text_input = 4
+  user_select = 5
+  role_select = 6
+  mentionable_select = 7
+  channel_select = 8
+  section = 9
+  text_display = 10
+  media_gallery = 11
+  container = 17
 
-    def __int__(self) -> int:
-        return self.value
 
 
 class ButtonStyle(Enum):
