@@ -1938,9 +1938,15 @@ def _component_factory(data: ComponentPayload, message: ComponentWithMessage = .
 
 class V2Layout(Component):
   __slots__ = ('type', 'children')
+  
   def __init__(self, data, *args, **kwargs):
     self.type = try_enum(ComponentType, data.get('type'))
     self.children = [_component_factory(d, *args, **kwargs) for d in data.get('components', [])]
+    
+  @property
+  def __repr_info__(self):
+    return ('type', 'children')
+    
   def to_dict(self):
     return {
       'type': int(self.type),
