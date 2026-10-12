@@ -1975,6 +1975,7 @@ class Message(PartialMessage, Hashable):
         'analytics_id',
         'doing_deep_historical_index',
         '_pinned_at',
+        'cv2_buttons',
     )
 
     if TYPE_CHECKING:
@@ -1995,6 +1996,7 @@ class Message(PartialMessage, Hashable):
         search_result: Optional[MessageSearchResultPayload] = None,
     ) -> None:
         self.channel: MessageableChannel = channel
+        self.cv2_buttons = []
         self.id: int = int(data['id'])
         self._state: ConnectionState = state
         self.webhook_id: Optional[int] = utils._get_as_snowflake(data, 'webhook_id')
